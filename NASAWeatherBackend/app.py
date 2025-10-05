@@ -32,7 +32,7 @@ def get_weather(lat, lon, custom_time):
                 "wind":        data['data'][1]['coordinates'][0]['dates'][0]['value'],
                 "precip":      data['data'][2]['coordinates'][0]['dates'][0]['value'],
                 "humidity":    data['data'][3]['coordinates'][0]['dates'][0]['value'],
-                "precip_prob": data['data'][4]['coordinates'][0]['dates'][0]['value'],
+                "precip_probability": data['data'][4]['coordinates'][0]['dates'][0]['value'],
                 "cloud_cover": data['data'][5]['coordinates'][0]['dates'][0]['value'],
                 "wind_gusts":  data['data'][6]['coordinates'][0]['dates'][0]['value'],
                 "heat_index":  data['data'][7]['coordinates'][0]['dates'][0]['value']
@@ -47,20 +47,39 @@ def get_weather(lat, lon, custom_time):
 def home():
     return render_template("map.html")
 
-@app.route("/weather/coords", methods=["POST"])
-def weather_by_coords():
+@app.route("/weather", methods=["POST"])
+def weather_api():
     data = request.get_json()
-    lat = data.get("lat")
-    lon = data.get("lon")
+    location = data.get("location")
     datetime_str = data.get("datetime")
     custom_time = format_custom_time(datetime_str)
 
-    if not lat or not lon or not custom_time:
-        return jsonify({"error": "Missing lat/lon or datetime"}), 400
+    if not location or not custom_time:
+        return jsonify({"error": "Missing location or datetime"}), 400
+
+    # Geocode location
+    geo_url = "https://nominatim.openstreetmap.org/search"
+    params = {"q": location, "format": "json", "limit": 1}
+    geo_response = requests.get(geo_url, params=params, headers={"User-Agent": "weather-app"})
+    geo_data = geo_response.json()
+    if not geo_data:
+        return jsonify({"error": "Location not found"}), 400
+
+    lat = float(geo_data[0]['lat'])
+    lon = float(geo_data[0]['lon'])
 
     weather = get_weather(lat, lon, custom_time)
     if not weather:
         return jsonify({"error": "Weather data unavailable"}), 500
+
+    weather["location"] = location
+    weather["timestamp"] = datetime_str
+    weather["description"] = "Warm and breezy"  # You can add logic here
+    weather["life_index"] = {
+        "Beach": "More suitable",
+        "Hiking": "Suitable",
+        "Stargazing": "Inappropriate"
+    }
 
     return jsonify(weather)
 
