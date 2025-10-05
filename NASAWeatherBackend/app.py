@@ -27,19 +27,25 @@ def format_custom_time(custom_date):
 def get_weather(lat, lon, custom_time):
     url = f"{base_url}/{custom_time}/t_2m:C,wind_speed_10m:kmh,precip_1h:mm,relative_humidity_2m:p,precip_probability_1h:p,cloud_cover:p,wind_gusts_10m:kmh,heat_index_2m:C/{lat},{lon}/json?model=mix"
     print("🔗 Requesting:", url)
+
     try:
         response = requests.get(url, auth=HTTPBasicAuth(username, password))
         print("📡 Response Status:", response.status_code)
+
         if response.status_code != 200:
             print("❌ API error:", response.text)
             return None
 
         data = response.json()
-        print("📦 API Response:", data)
+        print("📦 Full API Response:", data)
 
-        # ✅ Extract values safely
+        # Check structure before extracting
+        if not data.get("data"):
+            print("⚠️ No 'data' field in response")
+            return None
+
         try:
-            return {
+            snapshot = {
                 "temp":        data['data'][0]['coordinates'][0]['dates'][0]['value'],
                 "wind":        data['data'][1]['coordinates'][0]['dates'][0]['value'],
                 "precip":      data['data'][2]['coordinates'][0]['dates'][0]['value'],
@@ -49,6 +55,8 @@ def get_weather(lat, lon, custom_time):
                 "wind_gusts":  data['data'][6]['coordinates'][0]['dates'][0]['value'],
                 "heat_index":  data['data'][7]['coordinates'][0]['dates'][0]['value']
             }
+            print("✅ Extracted snapshot:", snapshot)
+            return snapshot
         except Exception as e:
             print("⚠️ Data extraction error:", e)
             return None
@@ -56,6 +64,7 @@ def get_weather(lat, lon, custom_time):
     except Exception as e:
         print("❌ Request failed:", e)
         return None
+
 
 # 🏠 Serve frontend
 @app.route("/")
@@ -131,3 +140,4 @@ def weather_api():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
