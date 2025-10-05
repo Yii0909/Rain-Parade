@@ -30,8 +30,7 @@ let lifeHTML = `
     <thead>
       <tr>
         <th>Activity</th>
-        <th>Suitability</th>
-        <th>Emoji</th>
+        <th>Condition</th>
       </tr>
     </thead>
     <tbody>
@@ -43,8 +42,7 @@ for (const activity in data.life_index) {
   lifeHTML += `
     <tr>
       <td>${activity}</td>
-      <td>${status}</td>
-      <td>${emoji}</td>
+      <td>${status} ${emoji}</td>
     </tr>
   `;
 }
@@ -53,6 +51,7 @@ lifeHTML += `
     </tbody>
   </table>
 `;
+
 
     if (response.ok) {
       resultBox.innerHTML = `
@@ -73,5 +72,6 @@ lifeHTML += `
     resultBox.innerHTML = `❌ Failed to connect to server.`;
   }
 });
+
 
 
