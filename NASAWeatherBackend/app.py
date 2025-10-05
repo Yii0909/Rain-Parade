@@ -10,10 +10,7 @@ CORS(app)
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")
-
-app = Flask(__name__)
-CORS(app)
+    return render("index.html")
 
 # 🔐 Meteomatics API credentials
 base_url = "https://api.meteomatics.com"
@@ -45,15 +42,15 @@ def format_custom_time(custom_date):
 # 🌦️ Fetch weather data
 def get_weather(lat, lon, custom_time):
     url = f"{base_url}/{custom_time}/t_2m:C,wind_speed_10m:kmh,precip_1h:mm,relative_humidity_2m:p,precip_probability_1h:p,cloud_cover:p,wind_gusts_10m:kmh,heat_index_2m:C/{lat},{lon}/json?model=mix"
-    response = requests.get(url, auth=HTTPBasicAuth(username, password))
-    print(f"🔗 Request URL: {url}")
-    print(f"📡 Response Status: {response.status_code}")
-
-    if response.status_code != 200:
-        print("❌ API Error:", response.status_code, response.text)
-        return None, custom_time.replace("T", " ")
-
     try:
+        response = requests.get(url, auth=HTTPBasicAuth(username, password))
+        print(f"🔗 Request URL: {url}")
+        print(f"📡 Response Status: {response.status_code}")
+
+        if response.status_code != 200:
+            print("❌ API Error:", response.status_code, response.text)
+            return None, custom_time.replace("T", " ")
+
         data = response.json()
         print("📦 Full API Response:", data)
 
@@ -63,9 +60,8 @@ def get_weather(lat, lon, custom_time):
 
         return data, custom_time.replace("T", " ")
     except Exception as e:
-        print("❌ JSON parsing failed:", e)
+        print("❌ Request failed:", e)
         return None, custom_time.replace("T", " ")
-
 
 # 📝 Generate weather description
 def description(temp, wind, precip, humidity):
@@ -97,7 +93,7 @@ def life_index(temp, wind, precip, humidity):
 # 🏠 Home route
 @app.route("/", methods=["GET"])
 def home():
-    return "Weather Parade is online and forecasting! 🌦"
+    return render("index.html")
 
 # 📬 Weather route
 @app.route("/weather", methods=["POST"])
@@ -160,5 +156,6 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
