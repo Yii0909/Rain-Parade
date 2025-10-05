@@ -48,13 +48,24 @@ def get_weather(lat, lon, custom_time):
     response = requests.get(url, auth=HTTPBasicAuth(username, password))
     print(f"🔗 Request URL: {url}")
     print(f"📡 Response Status: {response.status_code}")
-    if response.status_code == 200:
-        print("📦 Full API Response:")
-        print(response.json())
-        display = custom_time.replace("T", " ")
-        return response.json(), display
-    print("❌ API Error:", response.status_code, response.text)
-    return None, custom_time.replace("T", " ")
+
+    if response.status_code != 200:
+        print("❌ API Error:", response.status_code, response.text)
+        return None, custom_time.replace("T", " ")
+
+    try:
+        data = response.json()
+        print("📦 Full API Response:", data)
+
+        if not data.get("data") or len(data["data"]) < 4:
+            print("⚠️ Incomplete or missing data")
+            return None, custom_time.replace("T", " ")
+
+        return data, custom_time.replace("T", " ")
+    except Exception as e:
+        print("❌ JSON parsing failed:", e)
+        return None, custom_time.replace("T", " ")
+
 
 # 📝 Generate weather description
 def description(temp, wind, precip, humidity):
@@ -149,4 +160,5 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
