@@ -1,3 +1,55 @@
+// 🌍 Initialize Map and Radar
+const map = L.map('radar-map').setView([3.139, 101.6869], 6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+const radarLayer = L.tileLayer('https://tilecache.rainviewer.com/v2/radar/1696500000/256/{z}/{x}/{y}/2/1_1.png', {
+  attribution: 'Weather data © RainViewer'
+}).addTo(map);
+
+// 🎛️ Radar Controls
+function toggleRadar() {
+  if (map.hasLayer(radarLayer)) {
+    map.removeLayer(radarLayer);
+  } else {
+    map.addLayer(radarLayer);
+  }
+}
+
+function changeOpacity(value) {
+  radarLayer.setOpacity(value);
+}
+
+// 📍 Map Click Handler
+map.on('click', function(e) {
+  const { lat, lng } = e.latlng;
+  L.popup()
+    .setLatLng([lat, lng])
+    .setContent(`📍 You clicked at:<br>Latitude: ${lat.toFixed(4)}<br>Longitude: ${lng.toFixed(4)}`)
+    .openOn(map);
+});
+
+// 🧪 Sample Marker
+const sampleWeather = {
+  location: "Kuala Lumpur",
+  lat: 3.139,
+  lon: 101.6869,
+  temp: 29.5,
+  wind: 5.2,
+  humidity: 78
+};
+
+const marker = L.marker([sampleWeather.lat, sampleWeather.lon]).addTo(map);
+marker.bindPopup(`
+  <strong>${sampleWeather.location}</strong><br>
+  🌡️ Temp: ${sampleWeather.temp}°C<br>
+  💨 Wind: ${sampleWeather.wind} km/h<br>
+  💦 Humidity: ${sampleWeather.humidity}%
+`);
+
+// 📬 Form Submission
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("weatherForm").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -105,34 +157,5 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (err) {
       resultBox.innerHTML = `❌ Failed to connect to server.`;
     }
-
-    const sampleWeather = {
-  location: "Kuala Lumpur",
-  lat: 3.139,
-  lon: 101.6869,
-  temp: 29.5,
-  wind: 5.2,
-  humidity: 78
-};
-
-const marker = L.marker([sampleWeather.lat, sampleWeather.lon]).addTo(map);
-marker.bindPopup(`
-  <strong>${sampleWeather.location}</strong><br>
-  🌡️ Temp: ${sampleWeather.temp}°C<br>
-  💨 Wind: ${sampleWeather.wind} km/h<br>
-  💦 Humidity: ${sampleWeather.humidity}%
-`);
-
-map.on('click', function(e) {
-  const { lat, lng } = e.latlng;
-  L.popup()
-    .setLatLng([lat, lng])
-    .setContent(`📍 You clicked at:<br>Latitude: ${lat.toFixed(4)}<br>Longitude: ${lng.toFixed(4)}`)
-    .openOn(map);
-
-  // Optional: fetch weather for clicked location
-  // fetchWeatherAt(lat, lng);
-});
-
   });
 });
