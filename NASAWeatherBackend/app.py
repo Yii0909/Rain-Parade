@@ -20,24 +20,17 @@ password = "cumXKFPR2KtCt2T70F14"
 
 # 🌍 Geocode location
 def geocode(location):
-    print("🌍 Geocoding:", location)
-    try:
-        response = requests.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={"q": location, "format": "json", "limit": 1},
-            headers={"User-Agent": "weather-app"}
-        )
-        data = response.json()
-        if data:
-            lat = float(data[0]['lat'])
-            lon = float(data[0]['lon'])
-            print("📍 Coordinates:", lat, lon)
-            return lat, lon
-        else:
-            print("❌ No geocode results")
-    except Exception as e:
-        print("❌ Geocode error:", e)
-    return None, None
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {"q": location, "format":"json","limit":1}
+    response = requests.get(url, params=params, headers={"User-Agent":"weather-app"})
+    data = response.json()
+
+    if data:
+        lat = float(data[0]['lat'])
+        lon = float(data[0]['lon'])
+        return lat,lon
+    else:
+        return None, None
 
 # 🕒 Format datetime
 def format_custom_time(custom_date):
@@ -173,6 +166,7 @@ def weather_api():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # fallback for local dev
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
 
