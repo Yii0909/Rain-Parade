@@ -69,7 +69,20 @@ def get_weather(lat, lon, custom_time):
     except Exception as e:
         print("❌ Weather fetch error:", e)
         return None, custom_time.replace("T", " ")
-
+        return jsonify({
+            "location": location,
+            "timestamp": timestamp,
+            "temp": temp,
+            "wind": wind,
+            "precip": precip,
+            "humidity": humidity,
+            "description": description(temp, wind, precip, humidity),
+            "life_index": life_index(temp, wind, precip, humidity),
+            "precip_probability": precip_prob,
+            "cloud_cover": cloud_cover,
+            "wind_gusts": wind_gusts,
+            "heat_index": heat_index
+        })
 # 📝 Description generator
 def description(temp, wind, precip, humidity):
     desc = []
@@ -158,4 +171,8 @@ def weather_api():
 
 # 🚀 Run server
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+    if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # fallback for local dev
+    app.run(host="0.0.0.0", port=port, debug=True)
+
+
