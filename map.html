@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Weather Radar</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    #radar-map {
+      height: 600px;
+      width: 100%;
+      border-radius: 10px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    button {
+      margin-right: 10px;
+      padding: 8px 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌍 Live Weather Radar</h1>
+    <div id="radar-map"></div>
+    <div>
+      <button onclick="toggleRadar()">Toggle Radar</button>
+      <button onclick="changeOpacity(0.3)">Low Opacity</button>
+      <button onclick="changeOpacity(0.7)">High Opacity</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('radar-map').setView([3.139, 101.6869], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    const radarLayer = L.tileLayer('https://tilecache.rainviewer.com/v2/radar/1696500000/256/{z}/{x}/{y}/2/1_1.png', {
+      attribution: 'Weather data © RainViewer'
+    }).addTo(map);
+
+    function toggleRadar() {
+      if (map.hasLayer(radarLayer)) {
+        map.removeLayer(radarLayer);
+      } else {
+        map.addLayer(radarLayer);
+      }
+    }
+
+    function changeOpacity(value) {
+      radarLayer.setOpacity(value);
+    }
+
+    map.on('click', async function(e) {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+      const now = new Date().toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+
+      const response = await fetch("/weather/coords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lon, datetime: now })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        L.popup()
+          .setLatLng([lat, lon])
+          .setContent(`❌ ${data.error}`)
+          .openOn(map);
+      } else {
+        L.popup()
+          .setLatLng([lat, lon])
+          .setContent(`
+            📍 Weather at clicked location:<br>
+            🌡️ Temp: ${data.temp}°C<br>
+            💨 Wind: ${data.wind} km/h<br>
+            💦 Humidity: ${data.humidity}%<br>
+            🌧️ Precipitation: ${data.precip} mm<br>
+            🌂 Rain Chance: ${data.precip_probability}%<br>
+            ☁️ Cloud Cover: ${data.cloud_cover}%<br>
+            💨 Wind Gusts: ${data.wind_gusts} km/h<br>
+            🔥 Heat Index: ${data.heat_index}°C
+          `)
+          .openOn(map);
+      }
+    });
+  </script>
+</body>
+</html>
