@@ -15,6 +15,8 @@ document.getElementById("weatherForm").addEventListener("submit", async function
     });
 
     const data = await response.json();
+    const tempC = data.temp;
+const tempF = (tempC * 9/5 + 32).toFixed(1); // Rounded to 1 decimal
     
     const emojiMap = {
   "Suitable": "✅",
@@ -57,7 +59,7 @@ lifeHTML += `
       resultBox.innerHTML = `
   <h2>📍 ${data.location}</h2>
   <p>🕒 ${data.timestamp}</p>
-  <p>🌡️ Temperature: ${data.temp}°C</p>
+  <p>🌡️ Temperature: ${tempC}°C / ${tempF}°F</p>
   <p>💨 Wind: ${data.wind} km/h</p>
   <p>🌧️ Precipitation: ${data.precip} mm</p>
   <p>💦 Humidity: ${data.humidity}%</p>
@@ -72,6 +74,7 @@ lifeHTML += `
     resultBox.innerHTML = `❌ Failed to connect to server.`;
   }
 });
+
 
 
 
