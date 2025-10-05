@@ -8,7 +8,10 @@ body {
 }
 
 .container {
-  background: white;
+  background-image: url('background.jpg'); /* Replace with your actual image path */
+  background-size: cover;                 /* Ensures the image fills the container */
+  background-position: center;            /* Centers the image */
+  background-repeat: no-repeat;   
   padding: 2rem 1rem;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.1);
@@ -71,7 +74,7 @@ button:hover {
 
 /* 📦 Individual Boxes */
 .box {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.50);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   padding-top: 10px, ;
@@ -214,3 +217,4 @@ html {
   color: #1e3a8a;
   text-align: left;
 }
+
