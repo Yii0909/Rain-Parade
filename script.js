@@ -56,24 +56,56 @@ lifeHTML += `
 
 
     if (response.ok) {
-      resultBox.innerHTML = `
-  <h2>📍 ${data.location}</h2>
-  <p>🕒 ${data.timestamp}</p>
-  <p>🌡️ Temperature: ${tempC}°C / ${tempF}°F</p>
-  <p>💨 Wind: ${data.wind} km/h</p>
-  <p>🌧️ Precipitation: ${data.precip} mm</p>
-  <p>💦 Humidity: ${data.humidity}%</p>
-  <p>🔍 Summary: <strong>${data.description}</strong></p>
-  ${lifeHTML}
-`;
+  // Clear loading message
+  resultBox.innerHTML = "";
 
-    } else {
-      resultBox.innerHTML = `❌ Error: ${data.error}`;
-    }
-  } catch (err) {
+  // Update each box directly
+  document.querySelector(".location-box").innerHTML = `
+    <h2>📍 ${data.location}</h2>
+    <p>🕒 ${data.timestamp}</p>
+  `;
+
+  document.querySelector(".stats-box").innerHTML = `
+    <p>🌡️ Temp: ${tempC}°C / ${tempF}°F</p>
+    <p>💨 Wind: ${data.wind} km/h</p>
+    <p>💦 Humidity: ${data.humidity}%</p>
+    <p>🌧️ Precipitation: ${data.precip} mm</p>
+  `;
+
+  document.querySelector(".summary-box").innerHTML = `
+    <p><strong>${data.description}</strong></p>
+  `;
+
+  document.querySelector(".life-index-box").innerHTML = lifeHTML;
+
+  // Optional: Chromie commentary logic
+  let chromieComment = "";
+  if (data.life_index["Beach"] === "More suitable") {
+    chromieComment = "Perfect beach vibes today! 🏖️";
+  } else if (data.life_index["Hiking"] === "Suitable") {
+    chromieComment = "Great day to hit the trails! 🥾";
+  } else {
+    chromieComment = "Maybe stay cozy indoors and play with Chromie instead! 🎮";
+  }
+
+  document.querySelector(".chromie-box").innerHTML = `
+    <p>🐼 Chromie says: ${chromieComment}</p>
+  `;
+}
+
+      } catch (err) {
     resultBox.innerHTML = `❌ Failed to connect to server.`;
   }
 });
+
+resultBox.innerHTML = `
+  <div class="loading">
+    <p>🔍 Fetching weather data...</p>
+    <div class="spinner"></div>
+  </div>
+`;
+
+
 
 
 
