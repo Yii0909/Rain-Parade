@@ -54,54 +54,11 @@
       </div>
 
       <div class="box chromie-box"></div>
-
-        <h2>🌍 Live Weather Radar</h2>
-  <div id="radar-map"></div>
-  <div>
-    <button onclick="toggleRadar()">Toggle Radar</button>
-    <button onclick="changeOpacity(0.3)">Low Opacity</button>
-    <button onclick="changeOpacity(0.7)">High Opacity</button>
-  </div>
     </div>
   </div>
-
-<script>
-  // ✅ Define map and radarLayer at the top level
-  const map = L.map('radar-map').setView([3.139, 101.6869], 6);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-
-  const radarLayer = L.tileLayer('https://tilecache.rainviewer.com/v2/radar/1696500000/256/{z}/{x}/{y}/2/1_1.png', {
-    attribution: 'Weather data © RainViewer'
-  }).addTo(map);
-
-  // ✅ Functions must be global
-  function toggleRadar() {
-    if (map.hasLayer(radarLayer)) {
-      map.removeLayer(radarLayer);
-    } else {
-      map.addLayer(radarLayer);
-    }
-  }
-
-  function changeOpacity(value) {
-    radarLayer.setOpacity(value);
-  }
-
-  // ✅ Map click handler
-  map.on('click', function(e) {
-    const { lat, lng } = e.latlng;
-    L.popup()
-      .setLatLng([lat, lng])
-      .setContent(`📍 You clicked at:<br>Latitude: ${lat.toFixed(4)}<br>Longitude: ${lng.toFixed(4)}`)
-      .openOn(map);
-  });
-</script>
-
 </body>
 </html>
+
 
 
 
