@@ -71,6 +71,7 @@ def home():
 
 # 📬 Weather API route
 @app.route("/weather", methods=["POST"])
+@app.route("/weather", methods=["POST"])
 def weather_api():
     data = request.get_json()
     print("📥 Incoming data:", data)
@@ -104,22 +105,11 @@ def weather_api():
         print("❌ Geocoding failed:", e)
         return jsonify({"error": "Geocoding failed"}), 500
 
-    # 🌦️ Fetch weather
+    # 🌦️ Fetch weather snapshot
     weather = get_weather(lat, lon, custom_time)
     if not weather:
-        print("❌ Weather data unavailable — using fallback")
-        weather = {
-            "temp": 28,
-            "wind": 5,
-            "precip": 0,
-            "humidity": 75,
-            "precip_probability": 60,
-            "cloud_cover": 80,
-            "wind_gusts": 12,
-            "heat_index": 33
-        }
-
-    print("✅ Final Weather Snapshot:", weather)
+        print("❌ Weather data unavailable")
+        return jsonify({"error": "Weather data unavailable"}), 500
 
     # 🎯 Add extras
     weather["location"] = location
@@ -133,7 +123,9 @@ def weather_api():
 
     return jsonify(weather)
 
+
 # 🚀 Run server
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
