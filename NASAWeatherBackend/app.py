@@ -71,6 +71,9 @@ def get_weather(lat, lon, custom_time):
     except Exception as e:
         print("❌ Request failed:", e)
         return None, custom_time.replace("T", " ")
+print("📡 API response status:", response.status_code)
+print("📦 Raw response text:", response.text)
+
 
 # 📝 Generate weather description
 def description(temp, wind, precip, humidity):
@@ -145,7 +148,7 @@ def weather_api():
         desc = description(temp, wind, precip, humidity)
         life = life_index(temp, wind, precip, humidity)
 
-        return jsonify({
+               return jsonify({
             "location": location,
             "timestamp": timestamp,
             "temp": temp,
@@ -167,6 +170,7 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
 
