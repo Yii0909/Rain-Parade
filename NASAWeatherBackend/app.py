@@ -60,16 +60,16 @@ def description(temp, wind, precip, humidity):
 def life_index(temp, wind, precip, humidity):
     index = {}
 
-    index["Rowing"] = "Not suitable" if wind >= 15 or precip >= 1 else "Suitable"
-    index["Flying kite"] = "Not suitable" if wind < 10 or precip >= 1 else "Suitable"
-    index["Skateboard"] = "Very inappropriate" if precip >= 1 else "Suitable"
-    index["Golf"] = "Very inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
-    index["Fishing"] = "Inappropriate" if temp >= 32 or precip >= 1 else "Suitable"
-    index["Stargazing"] = "Inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
-    index["Outdoor concert"] = "More suitable" if temp <= 30 and precip < 1 else "Not suitable"
-    index["Beach"] = "More suitable" if temp >= 28 and humidity <= 70 else "Not suitable"
-    index["Hiking"] = "Suitable" if temp <= 30 and precip < 1 and wind < 20 else "Not suitable"
-    index["Vacation"] = "More suitable" if temp >= 25 and precip < 1 and humidity <= 80 else "Not suitable"
+    index["🚣‍♀ Rowing"] = "Not suitable" if wind >= 15 or precip >= 1 else "Suitable"
+    index["🪁 Flying kite"] = "Not suitable" if wind < 10 or precip >= 1 else "Suitable"
+    index["🛹 Skateboard"] = "Very inappropriate" if precip >= 1 else "Suitable"
+    index["⛳ Golf"] = "Very inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
+    index["🎣 Fishing"] = "Inappropriate" if temp >= 32 or precip >= 1 else "Suitable"
+    index["🌠 Stargazing"] = "Inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
+    index["🎤 Outdoor concert"] = "More suitable" if temp <= 30 and precip < 1 else "Not suitable"
+    index["🏖 Beach"] = "More suitable" if temp >= 28 and humidity <= 70 else "Not suitable"
+    index["🏔 Hiking"] = "Suitable" if temp <= 30 and precip < 1 and wind < 20 else "Not suitable"
+    index["✈ Vacation"] = "More suitable" if temp >= 25 and precip < 1 and humidity <= 80 else "Not suitable"
 
     return index
 
@@ -116,6 +116,7 @@ def weather_api():
 if __name__ == "__main__":
     import os
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
 
