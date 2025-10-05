@@ -20,27 +20,29 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }, 10000);
 
-    try {
-      console.log("📡 Sending request:", { location, datetime });
+   try {
+  console.log("📡 Sending request:", { location, datetime });
 
-      const response = await fetch("https://rain-parade.onrender.com/weather", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ location, datetime })
-      });
+  const response = await fetch("/weather", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ location, datetime })
+  });
 
-      console.log("📬 Response status:", response.status);
+  console.log("📬 Response status:", response.status);
 
-      const data = await response.json();
+  if (!response.ok) {
+    const text = await response.text();  // Read raw HTML or error message
+    console.error("❌ Server responded with error:", response.status, text);
+    resultBox.innerHTML = `
+      <p>❌ Error: ${response.status}</p>
+      <p>🐼 Chromie says: “Hmm... the weather spirits aren’t responding. Try again later!”</p>
+      <button onclick="location.reload()">🔁 Retry</button>
+    `;
+    return;
+  }
 
-      if (!response.ok) {
-        resultBox.innerHTML = `
-          <p>❌ Error: ${data.error}</p>
-          <p>🐼 Chromie says: “Hmm... the weather spirits aren’t responding. Try again later!”</p>
-          <button onclick="location.reload()">🔁 Retry</button>
-        `;
-        return;
-      }
+  const data = await response.json();  // ✅ Only parse if response is OK
 
       const tempC = data.temp;
       const tempF = (tempC * 9 / 5 + 32).toFixed(1);
@@ -114,3 +116,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
