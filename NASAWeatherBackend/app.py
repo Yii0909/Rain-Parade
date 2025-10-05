@@ -28,17 +28,18 @@ def geocode(location):
             headers={"User-Agent": "weather-app"}
         )
         data = response.json()
-        print("📍 Geocode response:", data)
         if data:
-            return float(data[0]['lat']), float(data[0]['lon'])
+            lat = float(data[0]['lat'])
+            lon = float(data[0]['lon'])
+            print("📍 Coordinates:", lat, lon)
+            return lat, lon
     except Exception as e:
-        print("❌ Geocode failed:", e)
+        print("❌ Geocode error:", e)
     return None, None
 
 # 🕒 Format datetime
 def format_custom_time(custom_date):
     try:
-        print("🕒 Raw input:", custom_date)
         dt = datetime.strptime(custom_date, "%Y-%m-%dT%H:%M")
         dt_utc = dt.replace(tzinfo=timezone.utc)
         formatted = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -53,21 +54,20 @@ def get_weather(lat, lon, custom_time):
     url = f"{base_url}/{custom_time}/t_2m:C,wind_speed_10m:kmh,precip_1h:mm,relative_humidity_2m:p,precip_probability_1h:p,cloud_cover:p,wind_gusts_10m:kmh,heat_index_2m:C/{lat},{lon}/json?model=mix"
     try:
         response = requests.get(url, auth=HTTPBasicAuth(username, password))
-        print("🔗 Request URL:", url)
-        print("📡 Status:", response.status_code)
-        print("📦 Raw response:", response.text)
+        print("📡 API Status:", response.status_code)
+        print("📦 Raw Response:", response.text)
 
         if response.status_code != 200:
             return None, custom_time.replace("T", " ")
 
         data = response.json()
         if not data.get("data") or len(data["data"]) < 8:
-            print("⚠️ Incomplete data")
+            print("⚠️ Incomplete weather data")
             return None, custom_time.replace("T", " ")
 
         return data, custom_time.replace("T", " ")
     except Exception as e:
-        print("❌ API request failed:", e)
+        print("❌ Weather fetch error:", e)
         return None, custom_time.replace("T", " ")
 
 # 📝 Description generator
@@ -100,7 +100,7 @@ def extract(data, index, label):
         value = data['data'][index]['coordinates'][0]['dates'][0]['value']
         print(f"✅ {label}: {value}")
         return value
-    except (IndexError, KeyError, TypeError) as e:
+    except Exception as e:
         print(f"⚠ Missing {label}:", e)
         return None
 
@@ -111,7 +111,7 @@ def weather_api():
         data = request.get_json()
         location = data.get("location")
         custom_date = data.get("datetime")
-        print("📥 Request received:", location, custom_date)
+        print("📥 Request:", location, custom_date)
 
         custom_time = format_custom_time(custom_date)
         if not custom_time:
