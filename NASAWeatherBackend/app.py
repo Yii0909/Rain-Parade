@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from requests.auth import HTTPBasicAuth
@@ -8,10 +8,22 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# 🔐 Meteomatics credentials
+# 🔐 Meteomatics API credentials
 base_url = "https://api.meteomatics.com"
 username = "stellar_seekers"
 password = "cumXKFPR2KtCt2T70F14"
+
+# 🌍 Geocode location
+def geocode(location):
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {"q": location, "format": "json", "limit": 1}
+    response = requests.get(url, params=params, headers={"User-Agent": "weather-app"})
+    data = response.json()
+    if data:
+        lat = float(data[0]['lat'])
+        lon = float(data[0]['lon'])
+        return lat, lon
+    return None, None
 
 # 🕒 Format datetime for Meteomatics
 def format_custom_time(custom_date):
@@ -19,113 +31,114 @@ def format_custom_time(custom_date):
         dt = datetime.strptime(custom_date, "%Y-%m-%dT%H:%M")
         dt_utc = dt.replace(tzinfo=timezone.utc)
         return dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-    except ValueError as e:
-        print("❌ Invalid datetime format:", e)
+    except ValueError:
+        print("Invalid format. Use YYYY-MM-DDTHH:MM")
         return None
 
-# 🌦️ Fetch weather data from Meteomatics
+# 🌦️ Fetch weather data
 def get_weather(lat, lon, custom_time):
     url = f"{base_url}/{custom_time}/t_2m:C,wind_speed_10m:kmh,precip_1h:mm,relative_humidity_2m:p,precip_probability_1h:p,cloud_cover:p,wind_gusts_10m:kmh,heat_index_2m:C/{lat},{lon}/json?model=mix"
-    print("🔗 Requesting:", url)
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
+    print(f"🔗 Request URL: {url}")
+    print(f"📡 Response Status: {response.status_code}")
+    if response.status_code == 200:
+        print("📦 Full API Response:")
+        print(response.json())
+        display = custom_time.replace("T", " ")
+        return response.json(), display
+    print("❌ API Error:", response.status_code, response.text)
+    return None, custom_time.replace("T", " ")
 
-    try:
-        response = requests.get(url, auth=HTTPBasicAuth(username, password))
-        print("📡 Response Status:", response.status_code)
+# 📝 Generate weather description
+def description(temp, wind, precip, humidity):
+    desc = []
+    if temp <= 10: desc.append("Very Cold")
+    elif temp <= 20: desc.append("Cool")
+    elif temp <= 30: desc.append("Warm")
+    else: desc.append("Very Hot")
+    desc.append("Windy" if wind >= 20 else "Breezy")
+    if precip >= 1: desc.append("Wet")
+    if humidity >= 80: desc.append("Uncomfortable")
+    return " and ".join(desc)
 
-        if response.status_code != 200:
-            print("❌ API error:", response.text)
-            return None
+# 🎯 Life index logic
+def life_index(temp, wind, precip, humidity):
+    index = {}
+    index["🚣‍♀ Rowing"] = "Not suitable" if wind >= 15 or precip >= 1 else "Suitable"
+    index["🪁 Flying kite"] = "Not suitable" if wind < 10 or precip >= 1 else "Suitable"
+    index["🛹 Skateboard"] = "Very inappropriate" if precip >= 1 else "Suitable"
+    index["⛳ Golf"] = "Very inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
+    index["🎣 Fishing"] = "Inappropriate" if temp >= 32 or precip >= 1 else "Suitable"
+    index["🌠 Stargazing"] = "Inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
+    index["🎤 Outdoor concert"] = "More suitable" if temp <= 30 and precip < 1 else "Not suitable"
+    index["🏖 Beach"] = "More suitable" if temp >= 28 and humidity <= 70 else "Not suitable"
+    index["🏔 Hiking"] = "Suitable" if temp <= 30 and precip < 1 and wind < 20 else "Not suitable"
+    index["✈ Vacation"] = "More suitable" if temp >= 25 and precip < 1 and humidity <= 80 else "Not suitable"
+    return index
 
-        data = response.json()
-        print("📦 Full API Response:", data)
-
-        if not data.get("data"):
-            print("⚠️ No 'data' field in response")
-            return None
-
-        try:
-            snapshot = {
-                "temp":        data['data'][0]['coordinates'][0]['dates'][0]['value'],
-                "wind":        data['data'][1]['coordinates'][0]['dates'][0]['value'],
-                "precip":      data['data'][2]['coordinates'][0]['dates'][0]['value'],
-                "humidity":    data['data'][3]['coordinates'][0]['dates'][0]['value'],
-                "precip_probability": data['data'][4]['coordinates'][0]['dates'][0]['value'],
-                "cloud_cover": data['data'][5]['coordinates'][0]['dates'][0]['value'],
-                "wind_gusts":  data['data'][6]['coordinates'][0]['dates'][0]['value'],
-                "heat_index":  data['data'][7]['coordinates'][0]['dates'][0]['value']
-            }
-            print("✅ Extracted snapshot:", snapshot)
-            return snapshot
-        except Exception as e:
-            print("⚠️ Data extraction error:", e)
-            return None
-
-    except Exception as e:
-        print("❌ Request failed:", e)
-        return None
-
-# 🏠 Serve frontend
-@app.route("/")
+# 🏠 Home route
+@app.route("/", methods=["GET"])
 def home():
-    return render_template("map.html")
+    return "Weather Parade is online and forecasting! 🌦"
 
-# 📬 Weather API route
-@app.route("/weather", methods=["POST"])
+# 📬 Weather route
 @app.route("/weather", methods=["POST"])
 def weather_api():
     data = request.get_json()
-    print("📥 Incoming data:", data)
-
     location = data.get("location")
-    datetime_str = data.get("datetime")
-    custom_time = format_custom_time(datetime_str)
-    print("📍 Location:", location)
-    print("🕒 Custom Time:", custom_time)
+    custom_date = data.get("datetime")
+    custom_time = format_custom_time(custom_date)
 
-    if not location or not custom_time:
-        print("❌ Missing location or datetime")
-        return jsonify({"error": "Missing location or datetime"}), 400
+    if not custom_time:
+        return jsonify({"error": "Invalid date format"}), 400
 
-    # 🌍 Geocode location
-    try:
-        geo_url = "https://nominatim.openstreetmap.org/search"
-        params = {"q": location, "format": "json", "limit": 1}
-        geo_response = requests.get(geo_url, params=params, headers={"User-Agent": "weather-app"})
-        geo_data = geo_response.json()
-        print("📍 Geocode result:", geo_data)
+    lat, lon = geocode(location)
+    if not lat or not lon:
+        return jsonify({"error": "Location not found"}), 400
 
-        if not geo_data:
-            print("❌ Location not found")
-            return jsonify({"error": "Location not found"}), 400
-
-        lat = float(geo_data[0]['lat'])
-        lon = float(geo_data[0]['lon'])
-        print(f"📍 Coordinates: lat={lat}, lon={lon}")
-    except Exception as e:
-        print("❌ Geocoding failed:", e)
-        return jsonify({"error": "Geocoding failed"}), 500
-
-    # 🌦️ Fetch weather snapshot
-    weather = get_weather(lat, lon, custom_time)
-    if not weather:
-        print("❌ Weather data unavailable")
+    weather, timestamp = get_weather(lat, lon, custom_time)
+    if not weather or "data" not in weather:
         return jsonify({"error": "Weather data unavailable"}), 500
 
-    # 🎯 Add extras
-    weather["location"] = location
-    weather["timestamp"] = datetime_str
-    weather["description"] = "Warm and breezy"
-    weather["life_index"] = {
-        "Beach": "More suitable",
-        "Hiking": "Suitable",
-        "Stargazing": "Inappropriate"
-    }
+    def extract(index, label):
+        try:
+            value = weather['data'][index]['coordinates'][0]['dates'][0]['value']
+            print(f"✅ {label}: {value}")
+            return value
+        except (IndexError, KeyError) as e:
+            print(f"⚠ Missing {label}: {e}")
+            return None
 
-    return jsonify(weather)
+    temp        = extract(0, "Temperature")
+    wind        = extract(1, "Wind Speed")
+    precip      = extract(2, "Precipitation")
+    humidity    = extract(3, "Humidity")
+    precip_prob = extract(4, "Rain Chance")
+    cloud_cover = extract(5, "Cloud Cover")
+    wind_gusts  = extract(6, "Wind Gusts")
+    heat_index  = extract(7, "Heat Index")
 
+    if None in [temp, wind, precip, humidity]:
+        return jsonify({"error": "Essential weather data missing"}), 500
+
+    desc = description(temp, wind, precip, humidity)
+    life = life_index(temp, wind, precip, humidity)
+
+    return jsonify({
+        "location": location,
+        "timestamp": timestamp,
+        "temp": temp,
+        "wind": wind,
+        "precip": precip,
+        "humidity": humidity,
+        "description": desc,
+        "life_index": life,
+        "precip_probability": precip_prob,
+        "cloud_cover": cloud_cover,
+        "wind_gusts": wind_gusts,
+        "heat_index": heat_index
+    })
 
 # 🚀 Run server
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
-
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
