@@ -56,6 +56,10 @@ def description(temp, wind, precip, humidity):
     if humidity >= 80: desc.append("Uncomfortable")
     return " and ".join(desc)
 
+@app.route("/", methods=["GET"])
+def home():
+    return "Weather Parade is online and forecasting! 🌦️"
+
 @app.route('/weather', methods=['POST'])
 def weather_api():
     data = request.get_json()
@@ -93,5 +97,6 @@ def weather_api():
 if __name__ == "__main__":
     import os
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
