@@ -1,9 +1,16 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import requests
 from requests.auth import HTTPBasicAuth
 from datetime import datetime, timezone
 import os
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("index.html")
 
 app = Flask(__name__)
 CORS(app)
@@ -142,3 +149,4 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
