@@ -39,7 +39,6 @@ def get_weather(lat, lon, custom_time):
         data = response.json()
         print("📦 Full API Response:", data)
 
-        # Check structure before extracting
         if not data.get("data"):
             print("⚠️ No 'data' field in response")
             return None
@@ -64,20 +63,6 @@ def get_weather(lat, lon, custom_time):
     except Exception as e:
         print("❌ Request failed:", e)
         return None
-        
-if not weather:
-    print("⚠️ Using fallback weather data")
-    weather = {
-        "temp": 28,
-        "wind": 5,
-        "precip": 0,
-        "humidity": 75,
-        "precip_probability": 60,
-        "cloud_cover": 80,
-        "wind_gusts": 12,
-        "heat_index": 33
-    }
-
 
 # 🏠 Serve frontend
 @app.route("/")
@@ -122,8 +107,7 @@ def weather_api():
     # 🌦️ Fetch weather
     weather = get_weather(lat, lon, custom_time)
     if not weather:
-        print("❌ Weather data unavailable")
-        # Optional: simulate fallback data
+        print("❌ Weather data unavailable — using fallback")
         weather = {
             "temp": 28,
             "wind": 5,
@@ -135,7 +119,7 @@ def weather_api():
             "heat_index": 33
         }
 
-    print("✅ Weather snapshot:", weather)
+    print("✅ Final Weather Snapshot:", weather)
 
     # 🎯 Add extras
     weather["location"] = location
@@ -153,5 +137,3 @@ def weather_api():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
