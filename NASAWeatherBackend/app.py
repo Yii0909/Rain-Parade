@@ -33,6 +33,8 @@ def geocode(location):
             lon = float(data[0]['lon'])
             print("📍 Coordinates:", lat, lon)
             return lat, lon
+        else:
+            print("❌ No geocode results")
     except Exception as e:
         print("❌ Geocode error:", e)
     return None, None
@@ -40,6 +42,7 @@ def geocode(location):
 # 🕒 Format datetime
 def format_custom_time(custom_date):
     try:
+        print("🧪 Formatting datetime:", custom_date)
         dt = datetime.strptime(custom_date, "%Y-%m-%dT%H:%M")
         dt_utc = dt.replace(tzinfo=timezone.utc)
         formatted = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -52,6 +55,12 @@ def format_custom_time(custom_date):
 # 🌦️ Fetch weather data
 def get_weather(lat, lon, custom_time):
     url = f"{base_url}/{custom_time}/t_2m:C,wind_speed_10m:kmh,precip_1h:mm,relative_humidity_2m:p,precip_probability_1h:p,cloud_cover:p,wind_gusts_10m:kmh,heat_index_2m:C/{lat},{lon}/json?model=mix"
+    print("🌦️ Fetching weather for:", lat, lon, custom_time)
+    print("🔗 API URL:", url)
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
+    print("📡 API Status:", response.status_code)
+    print("📦 Raw Response:", response.text)
+
     try:
         response = requests.get(url, auth=HTTPBasicAuth(username, password))
         print("📡 API Status:", response.status_code)
@@ -69,20 +78,7 @@ def get_weather(lat, lon, custom_time):
     except Exception as e:
         print("❌ Weather fetch error:", e)
         return None, custom_time.replace("T", " ")
-        return jsonify({
-            "location": location,
-            "timestamp": timestamp,
-            "temp": temp,
-            "wind": wind,
-            "precip": precip,
-            "humidity": humidity,
-            "description": description(temp, wind, precip, humidity),
-            "life_index": life_index(temp, wind, precip, humidity),
-            "precip_probability": precip_prob,
-            "cloud_cover": cloud_cover,
-            "wind_gusts": wind_gusts,
-            "heat_index": heat_index
-        })
+        
 # 📝 Description generator
 def description(temp, wind, precip, humidity):
     desc = []
@@ -175,9 +171,9 @@ def weather_api():
 
 # 🚀 Run server
 if __name__ == "__main__":
-    if __name__ == "__main__":
-        port = int(os.environ.get("PORT", 5000))  # fallback for local dev
-        app.run(host="0.0.0.0", port=port, debug=True)
+    port = int(os.environ.get("PORT", 5000))  # fallback for local dev
+    app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
 
