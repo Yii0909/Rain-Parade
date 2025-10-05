@@ -121,10 +121,14 @@ def extract(data, index, label):
 @app.route("/weather", methods=["POST"])
 def weather_api():
     try:
+        print("📥 Incoming request to /weather")
         data = request.get_json()
+        print("📦 Received payload:", data)
+
         location = data.get("location")
         custom_date = data.get("datetime")
-        print("📥 Request:", location, custom_date)
+        print("📍 Location:", location)
+        print("🕒 Datetime:", custom_date)
 
         custom_time = format_custom_time(custom_date)
         if not custom_time:
@@ -174,6 +178,7 @@ if __name__ == "__main__":
     if __name__ == "__main__":
         port = int(os.environ.get("PORT", 5000))  # fallback for local dev
         app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
 
