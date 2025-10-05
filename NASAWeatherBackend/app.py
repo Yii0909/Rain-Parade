@@ -19,25 +19,34 @@ password = "cumXKFPR2KtCt2T70F14"
 
 # 🌍 Geocode location
 def geocode(location):
+    print("🌍 Geocoding location:", location)
     url = "https://nominatim.openstreetmap.org/search"
     params = {"q": location, "format": "json", "limit": 1}
-    response = requests.get(url, params=params, headers={"User-Agent": "weather-app"})
-    data = response.json()
-    if data:
-        lat = float(data[0]['lat'])
-        lon = float(data[0]['lon'])
-        return lat, lon
+    try:
+        response = requests.get(url, params=params, headers={"User-Agent": "weather-app"})
+        data = response.json()
+        print("📍 Geocode response:", data)
+        if data:
+            lat = float(data[0]['lat'])
+            lon = float(data[0]['lon'])
+            return lat, lon
+    except Exception as e:
+        print("❌ Geocode failed:", e)
     return None, None
 
 # 🕒 Format datetime for Meteomatics
 def format_custom_time(custom_date):
     try:
+        print("🕒 Raw datetime input:", custom_date)
         dt = datetime.strptime(custom_date, "%Y-%m-%dT%H:%M")
         dt_utc = dt.replace(tzinfo=timezone.utc)
-        return dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
-    except ValueError:
-        print("Invalid format. Use YYYY-MM-DDTHH:MM")
+        formatted = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        print("🕒 Formatted UTC:", formatted)
+        return formatted
+    except ValueError as e:
+        print("❌ Time format error:", e)
         return None
+
 
 # 🌦️ Fetch weather data
 def get_weather(lat, lon, custom_time):
@@ -93,64 +102,72 @@ def life_index(temp, wind, precip, humidity):
 # 📬 Weather route
 @app.route("/weather", methods=["POST"])
 def weather_api():
-    data = request.get_json()
-    location = data.get("location")
-    custom_date = data.get("datetime")
-    custom_time = format_custom_time(custom_date)
+    try:
+        data = request.get_json()
+        location = data.get("location")
+        custom_date = data.get("datetime")
+        print("📥 Received:", location, custom_date)
 
-    if not custom_time:
-        return jsonify({"error": "Invalid date format"}), 400
+        custom_time = format_custom_time(custom_date)
+        if not custom_time:
+            return jsonify({"error": "Invalid date format"}), 400
 
-    lat, lon = geocode(location)
-    if not lat or not lon:
-        return jsonify({"error": "Location not found"}), 400
+        lat, lon = geocode(location)
+        print("📍 Geocoded:", lat, lon)
+        if not lat or not lon:
+            return jsonify({"error": "Location not found"}), 400
 
-    weather, timestamp = get_weather(lat, lon, custom_time)
-    if not weather or "data" not in weather:
-        return jsonify({"error": "Weather data unavailable"}), 500
+        weather, timestamp = get_weather(lat, lon, custom_time)
+        if not weather or "data" not in weather:
+            return jsonify({"error": "Weather data unavailable"}), 500
 
-    def extract(index, label):
-        try:
-            value = weather['data'][index]['coordinates'][0]['dates'][0]['value']
-            print(f"✅ {label}: {value}")
-            return value
-        except (IndexError, KeyError) as e:
-            print(f"⚠ Missing {label}: {e}")
-            return None
+        def extract(index, label):
+            try:
+                value = weather['data'][index]['coordinates'][0]['dates'][0]['value']
+                print(f"✅ {label}: {value}")
+                return value
+            except (IndexError, KeyError, TypeError) as e:
+                print(f"⚠ Missing {label}: {e}")
+                return None
 
-    temp        = extract(0, "Temperature")
-    wind        = extract(1, "Wind Speed")
-    precip      = extract(2, "Precipitation")
-    humidity    = extract(3, "Humidity")
-    precip_prob = extract(4, "Rain Chance")
-    cloud_cover = extract(5, "Cloud Cover")
-    wind_gusts  = extract(6, "Wind Gusts")
-    heat_index  = extract(7, "Heat Index")
+        temp        = extract(0, "Temperature")
+        wind        = extract(1, "Wind Speed")
+        precip      = extract(2, "Precipitation")
+        humidity    = extract(3, "Humidity")
+        precip_prob = extract(4, "Rain Chance")
+        cloud_cover = extract(5, "Cloud Cover")
+        wind_gusts  = extract(6, "Wind Gusts")
+        heat_index  = extract(7, "Heat Index")
 
-    if None in [temp, wind, precip, humidity]:
-        return jsonify({"error": "Essential weather data missing"}), 500
+        if None in [temp, wind, precip, humidity]:
+            return jsonify({"error": "Essential weather data missing"}), 500
 
-    desc = description(temp, wind, precip, humidity)
-    life = life_index(temp, wind, precip, humidity)
+        desc = description(temp, wind, precip, humidity)
+        life = life_index(temp, wind, precip, humidity)
 
-    return jsonify({
-        "location": location,
-        "timestamp": timestamp,
-        "temp": temp,
-        "wind": wind,
-        "precip": precip,
-        "humidity": humidity,
-        "description": desc,
-        "life_index": life,
-        "precip_probability": precip_prob,
-        "cloud_cover": cloud_cover,
-        "wind_gusts": wind_gusts,
-        "heat_index": heat_index
-    })
+        return jsonify({
+            "location": location,
+            "timestamp": timestamp,
+            "temp": temp,
+            "wind": wind,
+            "precip": precip,
+            "humidity": humidity,
+            "description": desc,
+            "life_index": life,
+            "precip_probability": precip_prob,
+            "cloud_cover": cloud_cover,
+            "wind_gusts": wind_gusts,
+            "heat_index": heat_index
+        })
+
+    except Exception as e:
+        print("❌ Unexpected server error:", e)
+        return jsonify({"error": "Server error occurred"}), 500
 
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
 
