@@ -3,10 +3,7 @@ body {
   background: linear-gradient(to right, #dbeafe, #f0f9ff);
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .container {
@@ -17,6 +14,7 @@ body {
   max-width: 400px;
   width: 100%;
   text-align: center;
+  margin: 2rem auto; /* centers horizontally and adds vertical spacing */
 }
 
 h1 {
@@ -91,5 +89,22 @@ button:hover {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+
+  @media (max-width: 768px) {
+  .weather-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .box {
+    width: 90%;
+  }
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+}
+
 
