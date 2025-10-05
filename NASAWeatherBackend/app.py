@@ -56,6 +56,21 @@ def description(temp, wind, precip, humidity):
     if humidity >= 80: desc.append("Uncomfortable")
     return " and ".join(desc)
 
+#life index
+def life_index(temp, wind, precip, humidity):
+    index = {}
+
+    index["Rowing"] = "Not suitable" if wind >= 15 or precip >= 1 else "Suitable"
+    index["Flying kite"] = "Not suitable" if wind < 10 or precip >= 1 else "Suitable"
+    index["Skateboard"] = "Very inappropriate" if precip >= 1 else "Suitable"
+    index["Golf"] = "Very inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
+    index["Fishing"] = "Inappropriate" if temp >= 32 or precip >= 1 else "Suitable"
+    index["Stargazing"] = "Inappropriate" if humidity >= 80 or precip >= 1 else "Suitable"
+    index["Outdoor concert"] = "More suitable" if temp <= 30 and precip < 1 else "Not suitable"
+    index["Beach"] = "More suitable" if temp >= 28 and humidity <= 70 else "Not suitable"
+
+    return index
+
 @app.route("/", methods=["GET"])
 def home():
     return "Weather Parade is online and forecasting! 🌦️"
@@ -83,6 +98,7 @@ def weather_api():
     precip = weather['data'][2]['coordinates'][0]['dates'][0]['value']
     humidity = weather['data'][3]['coordinates'][0]['dates'][0]['value']
     desc = description(temp, wind, precip, humidity)
+    life = life_index(temp, wind, precip, humidity)
 
     return jsonify({
         "location": location,
@@ -91,12 +107,14 @@ def weather_api():
         "wind": wind,
         "precip": precip,
         "humidity": humidity,
-        "description": desc
+        "description": desc,
+        "life_index": life
     })
 
 if __name__ == "__main__":
     import os
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
 
