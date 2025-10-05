@@ -55,3 +55,26 @@ button:hover {
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
 }
+
+.weather-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+}
+
+.box {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  width: 300px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.location-box { border-left: 6px solid #2196f3; }
+.stats-box    { border-left: 6px solid #4caf50; }
+.summary-box  { border-left: 6px solid #ff9800; }
+.life-index-box { border-left: 6px solid #9c27b0; }
+.chromie-box  { border-left: 6px solid #f44336; }
