@@ -1,39 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Live Weather Radar</title>
+  <title>Rain Parade</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     #radar-map {
       height: 600px;
       width: 100%;
       border-radius: 10px;
+      margin-bottom: 20px;
     }
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
-    button {
-      margin-right: 10px;
-      padding: 8px 16px;
+    .bar {
+      height: 20px;
       background-color: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .bar-container {
+      background-color: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🌍 Live Weather Radar</h1>
+    <h1>🌦️ Rain Parade</h1>
+
+    <form id="weatherForm">
+      <input type="text" id="location" placeholder="Enter location" required />
+      <input type="datetime-local" id="datetime" required />
+      <button type="submit">Check Weather</button>
+    </form>
+
+    <div id="result"></div>
+    <div class="location-box"></div>
+    <div class="stats-box"></div>
+    <div class="summary-box"></div>
+    <div class="life-index-box"></div>
+    <div class="chromie-box"></div>
+
+    <h3>📊 Weather Snapshot</h3>
+    <p>🌂 Rain Chance</p>
+    <div class="bar-container"><div id="rainBar" class="bar"></div></div>
+    <p>☁️ Cloud Cover</p>
+    <div class="bar-container"><div id="cloudBar" class="bar"></div></div>
+    <p>💨 Wind Gusts</p>
+    <div class="bar-container"><div id="windBar" class="bar"></div></div>
+    <p>🔥 Heat Index</p>
+    <div class="bar-container"><div id="heatBar" class="bar"></div></div>
+
+    <h3>🗺️ Live Radar Map</h3>
     <div id="radar-map"></div>
-    <div>
-      <button onclick="toggleRadar()">Toggle Radar</button>
-      <button onclick="changeOpacity(0.3)">Low Opacity</button>
-      <button onclick="changeOpacity(0.7)">High Opacity</button>
-    </div>
+    <button onclick="toggleRadar()">Toggle Radar</button>
+    <button onclick="changeOpacity(0.3)">Low Opacity</button>
+    <button onclick="changeOpacity(0.7)">High Opacity</button>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -60,41 +86,30 @@
       radarLayer.setOpacity(value);
     }
 
-    map.on('click', async function(e) {
-      const lat = e.latlng.lat;
-      const lon = e.latlng.lng;
-      const now = new Date().toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+    document.getElementById("weatherForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-      const response = await fetch("/weather/coords", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat, lon, datetime: now })
-      });
+      const location = document.getElementById("location").value;
+      const datetime = document.getElementById("datetime").value;
+      const resultBox = document.getElementById("result");
+      resultBox.innerHTML = `<p>🔍 Fetching weather data...</p>`;
 
-      const data = await response.json();
+      try {
+        const response = await fetch("/weather", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ location, datetime })
+        });
 
-      if (data.error) {
-        L.popup()
-          .setLatLng([lat, lon])
-          .setContent(`❌ ${data.error}`)
-          .openOn(map);
-      } else {
-        L.popup()
-          .setLatLng([lat, lon])
-          .setContent(`
-            📍 Weather at clicked location:<br>
-            🌡️ Temp: ${data.temp}°C<br>
-            💨 Wind: ${data.wind} km/h<br>
-            💦 Humidity: ${data.humidity}%<br>
-            🌧️ Precipitation: ${data.precip} mm<br>
-            🌂 Rain Chance: ${data.precip_probability}%<br>
-            ☁️ Cloud Cover: ${data.cloud_cover}%<br>
-            💨 Wind Gusts: ${data.wind_gusts} km/h<br>
-            🔥 Heat Index: ${data.heat_index}°C
-          `)
-          .openOn(map);
-      }
-    });
-  </script>
-</body>
-</html>
+        const data = await response.json();
+        if (!response.ok) {
+          resultBox.innerHTML = `❌ Error: ${data.error}`;
+          return;
+        }
+
+        const tempC = data.temp;
+        const tempF = (tempC * 9 / 5 + 32).toFixed(1);
+
+        document.querySelector(".location-box").innerHTML = `
+          <h2>📍 ${data.location}</h2>
+          <
