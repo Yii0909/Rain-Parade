@@ -24,14 +24,35 @@ document.getElementById("weatherForm").addEventListener("submit", async function
   "Very inappropriate": "😬"
 };
 
-let lifeHTML = "<h3>🎯 Life Index</h3><ul>";
+let lifeHTML = `
+  <h3>🎯 Life Index</h3>
+  <table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; text-align: left;">
+    <thead>
+      <tr>
+        <th>Activity</th>
+        <th>Suitability</th>
+        <th>Emoji</th>
+      </tr>
+    </thead>
+    <tbody>
+`;
+
 for (const activity in data.life_index) {
   const status = data.life_index[activity];
   const emoji = emojiMap[status] || "";
-  lifeHTML += `<li><strong>${activity}:</strong> ${status} ${emoji}</li>`;
+  lifeHTML += `
+    <tr>
+      <td>${activity}</td>
+      <td>${status}</td>
+      <td>${emoji}</td>
+    </tr>
+  `;
 }
-lifeHTML += "</ul>";
 
+lifeHTML += `
+    </tbody>
+  </table>
+`;
 
     if (response.ok) {
       resultBox.innerHTML = `
@@ -52,4 +73,5 @@ lifeHTML += "</ul>";
     resultBox.innerHTML = `❌ Failed to connect to server.`;
   }
 });
+
 
