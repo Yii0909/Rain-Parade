@@ -50,31 +50,45 @@ def home():
 @app.route("/weather", methods=["POST"])
 def weather_api():
     data = request.get_json()
+    print("📥 Incoming data:", data)
+
     location = data.get("location")
     datetime_str = data.get("datetime")
     custom_time = format_custom_time(datetime_str)
+    print("📍 Location:", location)
+    print("🕒 Custom Time:", custom_time)
 
     if not location or not custom_time:
+        print("❌ Missing location or datetime")
         return jsonify({"error": "Missing location or datetime"}), 400
 
-    # Geocode location
+    # Geocode
     geo_url = "https://nominatim.openstreetmap.org/search"
     params = {"q": location, "format": "json", "limit": 1}
     geo_response = requests.get(geo_url, params=params, headers={"User-Agent": "weather-app"})
     geo_data = geo_response.json()
+    print("📍 Geocode result:", geo_data)
+
     if not geo_data:
+        print("❌ Location not found")
         return jsonify({"error": "Location not found"}), 400
 
     lat = float(geo_data[0]['lat'])
     lon = float(geo_data[0]['lon'])
+    print(f"📍 Coordinates: lat={lat}, lon={lon}")
 
+    # Fetch weather
     weather = get_weather(lat, lon, custom_time)
     if not weather:
+        print("❌ Weather data unavailable")
         return jsonify({"error": "Weather data unavailable"}), 500
 
+    print("✅ Weather snapshot:", weather)
+
+    # Add extras
     weather["location"] = location
     weather["timestamp"] = datetime_str
-    weather["description"] = "Warm and breezy"  # You can add logic here
+    weather["description"] = "Warm and breezy"
     weather["life_index"] = {
         "Beach": "More suitable",
         "Hiking": "Suitable",
@@ -83,9 +97,11 @@ def weather_api():
 
     return jsonify(weather)
 
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
 
