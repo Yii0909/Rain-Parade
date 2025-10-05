@@ -67,7 +67,11 @@ def get_weather(lat, lon, custom_time):
             print("⚠️ Incomplete or missing data")
             return None, custom_time.replace("T", " ")
 
+        print("📡 API response status:", response.status_code)
+        print("📦 Raw response text:", response.text)
         return data, custom_time.replace("T", " ")
+
+
     except Exception as e:
         print("❌ Request failed:", e)
         return None, custom_time.replace("T", " ")
@@ -167,9 +171,3 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
-
-
-
-
-
-
