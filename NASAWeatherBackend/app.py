@@ -90,11 +90,6 @@ def life_index(temp, wind, precip, humidity):
     index["✈ Vacation"] = "More suitable" if temp >= 25 and precip < 1 and humidity <= 80 else "Not suitable"
     return index
 
-# 🏠 Home route
-@app.route("/", methods=["GET"])
-def home():
-    return render("index.html")
-
 # 📬 Weather route
 @app.route("/weather", methods=["POST"])
 def weather_api():
@@ -156,6 +151,7 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
 
