@@ -64,6 +64,19 @@ def get_weather(lat, lon, custom_time):
     except Exception as e:
         print("❌ Request failed:", e)
         return None
+        
+if not weather:
+    print("⚠️ Using fallback weather data")
+    weather = {
+        "temp": 28,
+        "wind": 5,
+        "precip": 0,
+        "humidity": 75,
+        "precip_probability": 60,
+        "cloud_cover": 80,
+        "wind_gusts": 12,
+        "heat_index": 33
+    }
 
 
 # 🏠 Serve frontend
@@ -140,4 +153,5 @@ def weather_api():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
 
