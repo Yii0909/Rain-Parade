@@ -10,7 +10,7 @@ CORS(app)
 
 @app.route("/", methods=["GET"])
 def home():
-    return render("index.html")
+    return render_template("index.html")
 
 # 🔐 Meteomatics API credentials
 base_url = "https://api.meteomatics.com"
@@ -156,6 +156,7 @@ def weather_api():
 # 🚀 Run server
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
 
 
 
